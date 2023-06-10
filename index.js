@@ -30,6 +30,7 @@ async function run() {
         await client.connect();
 
         const classesCollection = client.db('sportsAcademy').collection('classes');
+        const bookingClassCollection = client.db('sportsAcademy').collection('bookingClass');
 
 
 
@@ -37,6 +38,24 @@ async function run() {
         app.get('/classes', async (req, res) => {
             const result = await classesCollection.find().toArray();
             res.send(result);
+        })
+
+        // student: My Selected Classes
+        app.get('/bookingClass', async (req, res) => {
+            const email = req.query.email;
+            if (!email) {
+                res.send([])
+            }
+            const query = { email: email }
+            const result = await bookingClassCollection.find(query).toArray();
+            res.send(result)
+        })
+
+        app.post('/bookingClass', async (req, res) => {
+            const classes = req.body;
+            console.log(classes);
+            const result = await bookingClassCollection.insertOne(classes);
+            res.send(result)
         })
 
 

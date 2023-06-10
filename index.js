@@ -31,6 +31,8 @@ async function run() {
 
         const classesCollection = client.db('sportsAcademy').collection('classes');
         const bookingClassCollection = client.db('sportsAcademy').collection('bookingClass');
+        const usersCollection = client.db('sportsAcademy').collection('users');
+
 
 
 
@@ -57,6 +59,16 @@ async function run() {
             const result = await bookingClassCollection.insertOne(classes);
             res.send(result)
         })
+
+        // users relevant api
+        app.post('/users', async (req, res) => {
+            const user = req.body;
+            const result = await usersCollection.insertOne(user);
+            res.send(result)
+        })
+
+
+
 
         // booking delete specific id
         app.delete('/bookingClass/:id', async (req, res) => {

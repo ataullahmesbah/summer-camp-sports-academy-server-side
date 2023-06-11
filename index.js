@@ -81,6 +81,7 @@ async function run() {
             res.send(result)
         })
 
+        // users admin role
         app.patch('/users/admin/:id', async (req, res) => {
             const id = req.params.id
             console.log(id);
@@ -93,6 +94,24 @@ async function run() {
             const result = await usersCollection.updateOne(filter, updateDoc);
             res.send(result)
         })
+
+        // users instructor role
+        app.patch('/users/instructor/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const updateDoc = {
+              $set: {
+                role: 'instructor'
+              }
+            };
+          
+            try {
+              const result = await usersCollection.updateOne(filter, updateDoc);
+              res.send(result);
+            } catch (error) {
+              res.status(500).send('Error updating user role to instructor');
+            }
+          });
 
 
 

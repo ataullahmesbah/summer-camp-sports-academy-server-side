@@ -73,6 +73,18 @@ async function run() {
             next();
         }
 
+        // verifyJWT before using verifyInstructor
+
+        const verifyInstructor = async (req, res, next) => {
+            const email = req.decoded.email;
+            const query = { email: email }
+            const user = await usersCollection.findOne(query);
+            if (user?.role !== 'instructor') {
+                return res.status(403).send({ error: true, message: 'forbidden message' });
+            }
+            next();
+        }
+
 
 
 
@@ -111,21 +123,29 @@ async function run() {
         })
 
         // users relevant api
-        app.get('/users', verifyJWT, verifyAdmin, async (req, res) => {
+        app.get('/users',    async (req, res) => {
             const result = await usersCollection.find().toArray()
             res.send(result)
-        })
+        }) 
 
         app.post('/users', async (req, res) => {
-            const user = req.body;
-            const query = { email: user.email }
-            const existingUser = await usersCollection.findOne(query);
-            if (existingUser) {
-                return res.send({ message: 'user already exists' })
+            try {
+              const user = req.body;
+              const query = { email: user.email };
+              const existingUser = await usersCollection.findOne(query);
+              if (existingUser) {
+                return res.send({ message: 'User already exists' });
+              }
+              const saveUser = { name: user.name, email: user.email, img: user.img };
+          
+              const result = await usersCollection.insertOne(saveUser);
+              res.send(result);
+            } catch (error) {
+              res.status(500).send({ error: 'Failed to create user' });
             }
-            const result = await usersCollection.insertOne(user);
-            res.send(result)
-        })
+          });
+          
+          
 
         // users admin role
         app.patch('/users/admin/:id', async (req, res) => {

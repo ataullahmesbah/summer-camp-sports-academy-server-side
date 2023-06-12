@@ -98,6 +98,13 @@ async function run() {
             res.send(result);
         })
 
+            // instructor new class add
+        app.post('/classes', verifyJWT, verifyInstructor, async (req, res) => {
+            const newClasses = req.body;
+            const result = await classesCollection.insertOne(newClasses)
+            res.send(result)
+        })
+
         // student: My Selected Classes
         app.get('/bookingClass', verifyJWT, async (req, res) => {
             const email = req.query.email;
@@ -123,29 +130,29 @@ async function run() {
         })
 
         // users relevant api
-        app.get('/users',    async (req, res) => {
+        app.get('/users', async (req, res) => {
             const result = await usersCollection.find().toArray()
             res.send(result)
-        }) 
+        })
 
         app.post('/users', async (req, res) => {
             try {
-              const user = req.body;
-              const query = { email: user.email };
-              const existingUser = await usersCollection.findOne(query);
-              if (existingUser) {
-                return res.send({ message: 'User already exists' });
-              }
-              const saveUser = { name: user.name, email: user.email, img: user.img };
-          
-              const result = await usersCollection.insertOne(saveUser);
-              res.send(result);
+                const user = req.body;
+                const query = { email: user.email };
+                const existingUser = await usersCollection.findOne(query);
+                if (existingUser) {
+                    return res.send({ message: 'User already exists' });
+                }
+                const saveUser = { name: user.name, email: user.email, img: user.img };
+
+                const result = await usersCollection.insertOne(saveUser);
+                res.send(result);
             } catch (error) {
-              res.status(500).send({ error: 'Failed to create user' });
+                res.status(500).send({ error: 'Failed to create user' });
             }
-          });
-          
-          
+        });
+
+
 
         // users admin role
         app.patch('/users/admin/:id', async (req, res) => {

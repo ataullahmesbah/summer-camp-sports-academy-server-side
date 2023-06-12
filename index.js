@@ -88,20 +88,57 @@ async function run() {
 
 
 
+
+        // app.get('/classes', async (req, res) => {
+        //     const query = {};
+        //     // if (req.query?.email) {
+        //     //     query = { email: req.query.email }
+        //     // }
+        //     const options = {
+        //         sort: { "enrolled_student": -1 }
+        //     }
+        //     const result = await classesCollection.find(query, options).toArray();
+        //     res.send(result);
+        // })
+
+
+
         // classes relevant apis
         app.get('/classes', async (req, res) => {
-            const query = {};
+            let query = {};
+            if (req.query?.email) {
+                query = { email: req.query.email };
+            }
             const options = {
                 sort: { "enrolled_student": -1 }
-            }
+            };
             const result = await classesCollection.find(query, options).toArray();
+            res.send(result);
+        });
+
+        // // instructor specific add class show query data
+        app.get('/classes', verifyJWT, verifyInstructor, async (req, res) => {
+            const query = {};
+            if (req.query?.email) {
+                query = { email: req.query.email }
+            }
+
+            const result = await classesCollection.find(query).toArray();
             res.send(result);
         })
 
-            // instructor new class add
+        // instructor new class add
         app.post('/classes', verifyJWT, verifyInstructor, async (req, res) => {
             const newClasses = req.body;
             const result = await classesCollection.insertOne(newClasses)
+            res.send(result)
+        })
+
+        // classes delete specific id
+        app.delete('/classes/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await classesCollection.deleteOne(query);
             res.send(result)
         })
 

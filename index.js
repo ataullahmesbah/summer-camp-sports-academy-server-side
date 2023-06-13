@@ -4,6 +4,7 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
 const app = express();
 const jwt = require('jsonwebtoken');
+const stripe = require('stripe')(process.env.PAYMENT_SECRET_KEY)
 const port = process.env.PORT || 5000;
 
 // middleware
@@ -50,6 +51,8 @@ async function run() {
         const classesCollection = client.db('sportsAcademy').collection('classes');
         const bookingClassCollection = client.db('sportsAcademy').collection('bookingClass');
         const usersCollection = client.db('sportsAcademy').collection('users');
+        const paymentCollection = client.db('sportsAcademy').collection('payments');
+
 
 
         // post jwt
@@ -117,7 +120,7 @@ async function run() {
         });
 
         // // instructor specific add class show query data
-        app.get('/classes', verifyJWT, verifyInstructor, async (req, res) => {
+        app.get('/classes', verifyJWT, verifyAdmin, verifyInstructor, async (req, res) => {
             const query = {};
             if (req.query?.email) {
                 query = { email: req.query.email }
@@ -262,6 +265,32 @@ async function run() {
             const query = { _id: new ObjectId(id) }
             const result = await bookingClassCollection.deleteOne(query);
             res.send(result)
+        })
+
+
+        // create payment method
+        app.post('/create-payment-intent', verifyJWT, async (req, res) => {
+            const { price } = req.body;
+            const amount = parseInt(price * 100);
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: 'usd',
+                payment_method_types: ['card']
+            })
+            res.send({
+                clientSecret: paymentIntent.client_secret
+            })
+        })
+
+        // payment related api..
+        app.post('/payments', verifyJWT, async (req, res) => {
+            const payment = req.body;
+            const insertResult = await paymentCollection.insertOne(payment);
+
+            const query = { _id: { $in: payment.bookingClasses.map(id => new ObjectId(id)) } }
+            const deleteResult = await bookingClassCollection.deleteMany(query)
+
+            res.send({ insertResult, deleteResult });
         })
 
 

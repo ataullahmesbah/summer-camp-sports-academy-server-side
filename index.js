@@ -268,6 +268,48 @@ async function run() {
         })
 
 
+        // // Retrieve payment history
+        // app.get('/payments', verifyJWT, async (req, res) => {
+        //     try {
+        //         const paymentHistory = await paymentCollection.find().toArray();
+        //         res.send(paymentHistory);
+        //     } catch (error) {
+        //         console.log(error);
+        //         res.status(500).send('Error retrieving payment history');
+        //     }
+        // });
+
+        app.get('/payments', verifyJWT, async (req, res) => {
+            try {
+              const { sort, email } = req.query; // Add 'email' to the destructured object
+          
+              const query = {}; // Create an empty query object
+          
+              if (email) {
+                // If 'email' is provided in the query, add it to the query object
+                query.email = email;
+              }
+          
+              const sortOptions = {};
+          
+              if (sort === 'asc') {
+                sortOptions.price = 1;
+              } else if (sort === 'desc') {
+                sortOptions.price = -1;
+              }
+          
+              const paymentHistory = await paymentCollection.find(query).sort(sortOptions).toArray();
+              res.send(paymentHistory);
+            } catch (error) {
+              console.log(error);
+              res.status(500).send('Error retrieving payment history');
+            }
+          });
+          
+          
+          
+
+
         // create payment method
         app.post('/create-payment-intent', verifyJWT, async (req, res) => {
             const { price } = req.body;
